@@ -7,18 +7,18 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class BasePage {
-    public WebDriver driver;
+    protected WebDriver driver;
 
-    public BasePage(WebDriver driver) {
+    protected BasePage(WebDriver driver) {
         this.driver = driver;
         PageFactory.initElements(driver, this);
     }
 
-    public WebDriver getDriver() {
+    protected WebDriver getDriver() {
         return driver;
     }
 
-    public void waitForElementToBeClickable(WebElement webElement){
+    protected void waitForElementToBeClickable(WebElement webElement){
         WebDriverWait webDriverWait = new WebDriverWait(driver, 60);
         webDriverWait.until(ExpectedConditions.elementToBeClickable(webElement));
     }

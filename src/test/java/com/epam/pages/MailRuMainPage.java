@@ -2,10 +2,10 @@ package com.epam.pages;
 
 import com.epam.base.BasePage;
 import io.qameta.allure.Step;
-import org.openqa.selenium.Keys;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.List;
 
@@ -19,106 +19,92 @@ public class MailRuMainPage extends BasePage {
     WebElement writeLetterButton;
 
     @FindBy(xpath = "//label[@class='container--zU301']")
-    WebElement letterRecipient;
+    WebElement inputLetterRecipient;
 
     @FindBy(xpath = "//div[@role='textbox']")
-    WebElement textBox;
+    WebElement inputContent;
 
     @FindBy(xpath = "//span[text()='Отправить']")
     WebElement sendButton;
 
-    @FindBy(xpath = "//*[@id=\"sideBarContent\"]/div/nav/a[6]/div/div[2]/div")
+    @FindBy(xpath = "//div[text()=\"Отправленные\"]")
     WebElement sentMessagesButton;
 
-    @FindBy(xpath = "//a[starts-with(@class, 'llc llc_normal')]/div[4]/div/div/span[starts-with(@class, 'll-crpt')]")
+    @FindBy(xpath = "//span[@class='ll-crpt']")
     List<WebElement> listOfRecipients;
 
-    @FindBy(xpath = "//a[starts-with(@class, 'llc llc_normal')]/div[4]/div/div[3]/span[2]/div/span")
+    @FindBy(xpath = "//span[@class='ll-sp__normal']")
     List<WebElement> listOfContentsThatSent;
 
     @FindBy(xpath = "//span[@class='ph-dropdown-icon svelte-14x1gy5']")
-    WebElement dropdown;
+    WebElement dropdownOfUserOptions;
+
+    @FindBy(xpath = "//span[@class='ph-project__user-name svelte-1hiqrvn']")
+    WebElement linkLoggedUser;
 
     @FindBy(xpath = "//div[text()='Выйти']")
     WebElement exitButton;
 
-    public WebElement getDropdown() {
-        return dropdown;
-    }
-
-    public WebElement getExitButton() {
-        return exitButton;
-    }
-
-    public WebDriver getDriver() {
-        return driver;
-    }
-
-    public WebElement getWriteLetterButton() {
-        return writeLetterButton;
-    }
-
-    public WebElement getLetterRecipient() {
-        return letterRecipient;
-    }
-
-    public WebElement getTextBox() {
-        return textBox;
-    }
-
-    public WebElement getSendButton() {
-        return sendButton;
-    }
-
-    public WebElement getSentMessagesButton() {
-        return sentMessagesButton;
-    }
-
-    public List<WebElement> getListOfRecipients() {
-        return listOfRecipients;
-    }
-
-    public List<WebElement> getListOfContentsThatSent() {
-        return listOfContentsThatSent;
-    }
-
     @Step("sending letter in mailru")
-    public void sendLetter(String recipient, String content) {
-        waitForElementToBeClickable(this.getWriteLetterButton());
-        this.getWriteLetterButton().click();
-        this.getLetterRecipient().sendKeys(recipient, Keys.ENTER);
-        this.getTextBox().sendKeys(content);
-        waitForElementToBeClickable(this.getSendButton());
-        this.getSendButton().click();
+    public MailRuMainPage sendLetter(String recipient, String content) {
+        waitForElementToBeClickable(this.sentMessagesButton);
+        this.sentMessagesButton.click();
+        waitForElementToBeClickable(this.writeLetterButton);
+        this.writeLetterButton.click();
+        this.inputLetterRecipient.sendKeys(recipient, Keys.ENTER);
+        this.inputContent.sendKeys(content);
+        waitForElementToBeClickable(this.sendButton);
+        this.sendButton.click();
+        return this;
     }
 
     @Step("finding particular recipient by its name in mailru")
-    public int findRecipientByName(String name) {
-        for (int i = 0; i < this.getListOfRecipients().size(); i++) {
-            if (this.getListOfRecipients().get(i).getText().equalsIgnoreCase(name))
-                return i;
+    public boolean findRecipientByName(String name) {
+        for (WebElement listOfRecipient : this.listOfRecipients) {
+            if (listOfRecipient.getText().equalsIgnoreCase(name))
+                return true;
         }
-        return -1;
+        return false;
     }
 
     @Step("finding particular content by its text in mailru")
-    public int findContentByText(String text) {
-        for (int i = 0; i < this.getListOfContentsThatSent().size(); i++) {
-            if (this.getListOfContentsThatSent().get(i).getText().contains(text))
-                return i;
+    public boolean findContentByText(String text) {
+        for (WebElement element : this.listOfContentsThatSent) {
+            if (element.getText().contains(text))
+                return true;
         }
-        return -1;
+        return false;
     }
 
+    @Step("getting link of user after logging")
+    public String getLoggedInUser() {
+        return this.linkLoggedUser.getText();
+    }
+
+    @Step("validating whether the letter is sent or not")
+    public boolean isLetterSent(String recipient, String textOfContent) {
+        JavascriptExecutor jse = (JavascriptExecutor)driver;
+        jse.executeScript("arguments[0].click()", this.sentMessagesButton);
+
+        return findRecipientByName(recipient) && findContentByText(textOfContent);
+    }
+
+    @Step("accepting \"leave site\" alert")
+    public void acceptAlert() {
+        try {
+            WebDriverWait wait = new WebDriverWait(driver, 2);
+            wait.until(ExpectedConditions.alertIsPresent());
+            Alert alert = driver.switchTo().alert();
+            alert.accept();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Step("logging out")
     public void logOut() {
-        waitForElementToBeClickable(this.getDropdown());
-        this.getDropdown().click();
-        waitForElementToBeClickable(this.getExitButton());
-        this.getExitButton().click();
+        this.dropdownOfUserOptions.click();
+        this.exitButton.click();
     }
 
-    public void clickSentLetterButton() {
-        waitForElementToBeClickable(this.getSentMessagesButton());
-        this.getSentMessagesButton().click();
-    }
 }

@@ -2,10 +2,9 @@ package com.epam.tests;
 
 import com.epam.base.BaseTest;
 import com.epam.models.User;
-import com.epam.pages.ErrorPage;
 import com.epam.pages.MailRuLoginPage;
 import com.epam.pages.MailRuMainPage;
-import com.epam.utilities.DataProviderClass;
+import com.epam.service.UserCreator;
 import io.qameta.allure.Description;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
@@ -15,35 +14,39 @@ import org.testng.annotations.Test;
 
 public class LoginTest extends BaseTest {
 
-    @Test(dataProvider = "dataForPositiveLoginTest", dataProviderClass = DataProviderClass.class)
+    @Test(priority = 2)
     @Severity(SeverityLevel.NORMAL)
     @Description("Logging into mail.ru with the correct username / password")
-    public void loggingToMailRuPositive(User user, String expectedResult) {
-        driver.get(config.getProperty("mailUrl"));
-        MailRuLoginPage loginPage = PageFactory.initElements(driver, MailRuLoginPage.class);
-        MailRuMainPage mailRuMainPage = loginPage.loggingUpIntoAccount(user);
-        Assert.assertEquals(mailRuMainPage.getWriteLetterButton().getText(), expectedResult);
+    public void loggingToMailRuPositive() {
+        User user = UserCreator.withCredentialsFromProperty("mail");
+        MailRuMainPage mailRuMainPage = PageFactory.initElements(driver, MailRuLoginPage.class)
+                .openLoginPage()
+                .loggingUpIntoAccount(user);
+        String actualResult = mailRuMainPage.getLoggedInUser();
+        softAssert.assertEquals(actualResult, user.getName());
         mailRuMainPage.logOut();
+        softAssert.assertAll();
     }
 
-    @Test(dataProvider = "dataForNegativeDataLoginTest", dataProviderClass = DataProviderClass.class)
+    @Test(priority = 1)
     @Severity(SeverityLevel.NORMAL)
     @Description("Logging into mail.ru with the incorrect username / password pair")
-    public void loggingToMailRuNegative(User user, String expected) {
-        driver.get(config.getProperty("mailUrl"));
-        MailRuLoginPage loginPage = PageFactory.initElements(driver, MailRuLoginPage.class);
-        ErrorPage errorPage = loginPage.loggingWithIncorrectData(user);
-        Assert.assertEquals(errorPage.getIncorrectPasswordError().getText(), expected);
+    public void loggingToMailRuNegative() {
+        String actualResult = PageFactory.initElements(driver, MailRuLoginPage.class)
+                .openLoginPage()
+                .loggingWithIncorrectData(new User("fakeusername00@mail.ru","12345"))
+                .getIncorrectPasswordError();
+        Assert.assertEquals(actualResult, "Incorrect password. Try again");
     }
 
-    @Test(dataProvider = "dataForEmptyDataLoginTest", dataProviderClass = DataProviderClass.class)
+    @Test(priority = 0)
     @Severity(SeverityLevel.NORMAL)
     @Description("Logging into mail.ru with an empty username / password")
-    public void loggingToMailWithNoData(User user, String expected) {
-        driver.get(config.getProperty("mailUrl"));
-        MailRuLoginPage loginPage = PageFactory.initElements(driver, MailRuLoginPage.class);
-        ErrorPage errorPage = loginPage.loggingWithIncorrectData(user);
-        Assert.assertEquals(errorPage.getEmptyUsernameFieldError().getText(), expected);
+    public void loggingToMailWithNoData() {
+        String actualResult = PageFactory.initElements(driver, MailRuLoginPage.class)
+                .openLoginPage()
+                .loggingWithIncorrectData(new User("", ""))
+                .getEmptyUsernameFieldError();
+        Assert.assertEquals(actualResult, "The \"Account name\" field is required");
     }
-
 }

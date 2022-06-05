@@ -16,11 +16,11 @@ public class ErrorPage extends BasePage {
     @FindBy(xpath = "//small[text()='The \"Account name\" field is required']")
     WebElement emptyUsernameFieldError;
 
-    public WebElement getIncorrectPasswordError() {
-        return incorrectPasswordError;
+    public String getIncorrectPasswordError() {
+        return incorrectPasswordError.getText();
     }
 
-    public WebElement getEmptyUsernameFieldError() {
-        return emptyUsernameFieldError;
+    public String getEmptyUsernameFieldError() {
+        return emptyUsernameFieldError.getText();
     }
 }

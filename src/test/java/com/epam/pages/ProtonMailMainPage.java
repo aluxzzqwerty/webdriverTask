@@ -14,31 +14,19 @@ public class ProtonMailMainPage extends BasePage {
         super(driver);
     }
 
-    @FindBy(xpath = "//div[@class='flex flex-nowrap flex-align-items-center cursor-pointer item-container unread']/div/div/div[contains(@class, 'item-senders')]/span")
-    List<WebElement> sendersName;
+    @FindBy(xpath = "//div[@class='flex flex-nowrap flex-align-items-center cursor-pointer item-container unread'] //span[@data-testid=\"message-column:sender-address\"]")
+    List<WebElement> unreadSendersLetters;
 
-    @FindBy(xpath = "//*[@id=\"proton-root\"]/div[2]/div/div[1]")
+    @FindBy(xpath = "//*[@data-signature-widget='container']/preceding-sibling::div[2]")
     List<WebElement> contentsOfSenders;
 
     @FindBy(xpath = "//iframe[@title='Email content']")
-    WebElement frame;
-
-    public WebElement getFrame() {
-        return frame;
-    }
-
-    public List<WebElement> getSendersName() {
-        return sendersName;
-    }
-
-    public List<WebElement> getContentsOfSenders() {
-        return contentsOfSenders;
-    }
+    WebElement contentFrame;
 
     @Step("finding a particular sender by its name in protonmail")
     public int findSenderName(String name) {
-        for (int i = 0; i < this.getSendersName().size(); i++) {
-            if (this.getSendersName().get(i).getAttribute("title").equals(name)) {
+        for (int i = 0; i < this.unreadSendersLetters.size(); i++) {
+            if (this.unreadSendersLetters.get(i).getAttribute("title").equals(name)) {
                 return i;
             }
         }
@@ -47,29 +35,22 @@ public class ProtonMailMainPage extends BasePage {
 
     @Step("finding a particular sender`s content by its text in protonmail")
     public int findContentOfSender(String text) {
-        for (int i = 0; i < this.getContentsOfSenders().size(); i++) {
-            if (this.getContentsOfSenders().get(i).getText().equals(text)) {
+        for (int i = 0; i < this.contentsOfSenders.size(); i++) {
+            if (this.contentsOfSenders.get(i).getText().equals(text)) {
                 return i;
             }
         }
         return -1;
     }
 
-    @Step("validating whether the letter is unread in protonmail")
-    public boolean isLetterUnread(String name) {
-        for (int i = 0; i < this.getSendersName().size(); i++) {
-            if (this.getSendersName().get(i).getAttribute("title").equals(name)) {
-                return true;
-            }
-        }
-        return false;
-    }
+    public boolean validateIsLetterUnreadAndHasCorrectSenderAndContent(String sender, String sentContent) {
+        int indexOfSender = findSenderName(sender);
 
-
-    public ProtonMailMainPage clickToSendersName(int indexOfSender){
-        waitForElementToBeClickable(this.getSendersName().get(indexOfSender));
-        this.getSendersName().get(indexOfSender).click();
-        return this;
+        this.unreadSendersLetters.get(indexOfSender).click();
+        driver.switchTo().frame(this.contentFrame);
+        int indexOfContentSender = findContentOfSender(sentContent);
+        driver.switchTo().defaultContent();
+        return indexOfSender != -1 && indexOfContentSender != -1;
     }
 
 }
