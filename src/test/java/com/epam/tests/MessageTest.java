@@ -10,6 +10,7 @@ import io.qameta.allure.SeverityLevel;
 import org.openqa.selenium.support.PageFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 public class MessageTest extends BaseTest {
     private final String CONTENT = "some content";
@@ -25,6 +26,8 @@ public class MessageTest extends BaseTest {
                 .loggingUpIntoAccount(user)
                 .sendLetter(recipient, CONTENT);
         boolean actualResult = mailRuMainPage.isLetterSent(recipient, CONTENT);
+
+        SoftAssert softAssert = new SoftAssert();
         softAssert.assertTrue(actualResult);
 
         mailRuMainPage.acceptAlert();
@@ -40,7 +43,7 @@ public class MessageTest extends BaseTest {
         boolean actualResult = PageFactory.initElements(driver, ProtonMailLoginPage.class)
                 .openLoginPage()
                 .loggingProtonmail(user)
-                .validateIsLetterUnreadAndHasCorrectSenderAndContent(sender, CONTENT);
+                .isLetterUnreadAndHasCorrectSenderAndContent(sender, CONTENT);
         Assert.assertTrue(actualResult);
     }
 }

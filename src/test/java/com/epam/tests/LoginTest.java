@@ -11,6 +11,7 @@ import io.qameta.allure.SeverityLevel;
 import org.openqa.selenium.support.PageFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 public class LoginTest extends BaseTest {
 
@@ -23,6 +24,8 @@ public class LoginTest extends BaseTest {
                 .openLoginPage()
                 .loggingUpIntoAccount(user);
         String actualResult = mailRuMainPage.getLoggedInUser();
+
+        SoftAssert softAssert = new SoftAssert();
         softAssert.assertEquals(actualResult, user.getName());
         mailRuMainPage.logOut();
         softAssert.assertAll();

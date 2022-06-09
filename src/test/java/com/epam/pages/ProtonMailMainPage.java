@@ -1,6 +1,7 @@
 package com.epam.pages;
 
 import com.epam.base.BasePage;
+import com.epam.exceptions.NoSuchNameInListException;
 import io.qameta.allure.Step;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -14,7 +15,7 @@ public class ProtonMailMainPage extends BasePage {
         super(driver);
     }
 
-    @FindBy(xpath = "//div[@class='flex flex-nowrap flex-align-items-center cursor-pointer item-container unread'] //span[@data-testid=\"message-column:sender-address\"]")
+    @FindBy(xpath = "//div[@class='flex flex-nowrap flex-align-items-center cursor-pointer item-container unread'] //span[@data-testid=\"message-column:sender-address\"]") // css
     List<WebElement> unreadSendersLetters;
 
     @FindBy(xpath = "//*[@data-signature-widget='container']/preceding-sibling::div[2]")
@@ -24,33 +25,44 @@ public class ProtonMailMainPage extends BasePage {
     WebElement contentFrame;
 
     @Step("finding a particular sender by its name in protonmail")
-    public int findSenderName(String name) {
+    public int findSenderIndexByName(String name) {
+        int indexOfSender = -1;
         for (int i = 0; i < this.unreadSendersLetters.size(); i++) {
             if (this.unreadSendersLetters.get(i).getAttribute("title").equals(name)) {
-                return i;
+                indexOfSender = i;
             }
         }
-        return -1;
+        if (indexOfSender == -1)
+            throw new NoSuchNameInListException("Senders name not found");
+        return indexOfSender;
     }
 
     @Step("finding a particular sender`s content by its text in protonmail")
-    public int findContentOfSender(String text) {
+    public int findIndexOfContentBySender(String content) {
+        int indexOfContent = -1;
         for (int i = 0; i < this.contentsOfSenders.size(); i++) {
-            if (this.contentsOfSenders.get(i).getText().equals(text)) {
-                return i;
+            if (this.contentsOfSenders.get(i).getText().equals(content)) {
+                indexOfContent = i;
             }
         }
-        return -1;
+        if (indexOfContent == -1)
+            throw new NoSuchNameInListException("Content not found");
+        return indexOfContent;
     }
 
-    public boolean validateIsLetterUnreadAndHasCorrectSenderAndContent(String sender, String sentContent) {
-        int indexOfSender = findSenderName(sender);
+    public boolean isLetterUnreadAndHasCorrectSenderAndContent(String sender, String sentContent) {
+        try {
+            int indexOfSender = findSenderIndexByName(sender);
 
-        this.unreadSendersLetters.get(indexOfSender).click();
-        driver.switchTo().frame(this.contentFrame);
-        int indexOfContentSender = findContentOfSender(sentContent);
-        driver.switchTo().defaultContent();
-        return indexOfSender != -1 && indexOfContentSender != -1;
+            this.unreadSendersLetters.get(indexOfSender).click();
+            driver.switchTo().frame(this.contentFrame);
+            findIndexOfContentBySender(sentContent);
+            driver.switchTo().defaultContent();
+        }
+        catch (Exception e) {
+            return false;
+        }
+        return true;
     }
 
 }

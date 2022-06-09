@@ -15,7 +15,6 @@ import java.util.Date;
 
 public class BaseTest {
     protected static WebDriver driver;
-    protected SoftAssert softAssert = new SoftAssert();
 
     @BeforeSuite
     protected void setUp() {

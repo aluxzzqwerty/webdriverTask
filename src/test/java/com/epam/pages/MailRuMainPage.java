@@ -15,7 +15,7 @@ public class MailRuMainPage extends BasePage {
         super(driver);
     }
 
-    @FindBy(xpath = "//span[text()=\"Написать письмо\"]")
+    @FindBy(xpath = "//span[text()='Написать письмо']")
     WebElement writeLetterButton;
 
     @FindBy(xpath = "//label[@class='container--zU301']")
@@ -27,7 +27,7 @@ public class MailRuMainPage extends BasePage {
     @FindBy(xpath = "//span[text()='Отправить']")
     WebElement sendButton;
 
-    @FindBy(xpath = "//div[text()=\"Отправленные\"]")
+    @FindBy(xpath = "//div[text()='Отправленные']")
     WebElement sentMessagesButton;
 
     @FindBy(xpath = "//span[@class='ll-crpt']")
@@ -90,7 +90,7 @@ public class MailRuMainPage extends BasePage {
     }
 
     @Step("accepting \"leave site\" alert")
-    public void acceptAlert() {
+    public MailRuMainPage acceptAlert() {
         try {
             WebDriverWait wait = new WebDriverWait(driver, 2);
             wait.until(ExpectedConditions.alertIsPresent());
@@ -99,12 +99,14 @@ public class MailRuMainPage extends BasePage {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return this;
     }
 
     @Step("logging out")
-    public void logOut() {
+    public MailRuLoginPage logOut() {
         this.dropdownOfUserOptions.click();
         this.exitButton.click();
+        return new MailRuLoginPage(driver);
     }
 
 }
